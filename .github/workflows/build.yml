@@ -1,25 +1,60 @@
-- name: Setup Android SDK (Forced Structure)
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install System Dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+        pip install --upgrade buildozer cython
+
+    - name: Setup Android SDK (Fix Path)
+      run: |
+        # 1. Definisi path lokasi SDK
         export SDK_ROOT=/home/runner/android-sdk
-        mkdir -p $SDK_ROOT/cmdline-tools
+        mkdir -p $SDK_ROOT
         
-        # 1. Unduh dan siapkan SDK
+        # 2. Unduh cmdline-tools
+        mkdir -p $SDK_ROOT/cmdline-tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
         
-        # 2. Accept Licenses
+        # 3. Accept Licenses (otomatis)
         export PATH=$PATH:$SDK_ROOT/cmdline-tools/latest/bin
         yes "y" | sdkmanager --sdk_root=$SDK_ROOT --licenses
         
-        # 3. Install komponen
+        # 4. Install komponen API 34
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
-        # 4. TRIK SYMLINK: Membuat "Jembatan" agar Buildozer berhenti error
-        # Buildozer mencari di /home/runner/android-sdk/tools/bin/sdkmanager
+        # 5. TRIK SYMLINK: Membuat struktur "tools/bin" palsu agar Buildozer tidak error
+        # Buildozer versi lama mencari sdkmanager di sini, jadi kita arahkan ke lokasi asli
         mkdir -p $SDK_ROOT/tools/bin
         ln -s $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $SDK_ROOT/tools/bin/sdkmanager
         
-        # 5. Export Env
+        # 6. Set Environment Variables
         echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> $GITHUB_ENV
         echo "ANDROID_HOME=$SDK_ROOT" >> $GITHUB_ENV
+
+    - name: Build with Buildozer
+      run: |
+        buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: bin/*.apk
