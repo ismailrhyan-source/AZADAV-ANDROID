@@ -42,18 +42,18 @@ jobs:
 
     - name: Build with Buildozer
       run: |
-        # Hapus folder .buildozer agar build benar-benar bersih
+        # Hapus folder build lama agar bersih
         rm -rf .buildozer
         
-        # Bersihkan variabel environment yang berpotensi konflik
+        # Bersihkan Environment agar tidak ada konflik NDK
         unset ANDROID_NDK_HOME
         unset ANDROID_NDK
         unset ANDROID_NDK_ROOT
         
+        # MENAMBAHKAN FLAG UNTUK MENONAKTIFKAN ERROR KETAT:
+        # CFLAGS dan CXXFLAGS akan memaksa compiler untuk tidak menghentikan build
+        # meski ada peringatan format keamanan atau peringatan lainnya.
+        export CFLAGS="-Wno-error=format-security -Wno-error=unused-command-line-argument"
+        export CXXFLAGS="-Wno-error=format-security -Wno-error=unused-command-line-argument"
+        
         buildozer -v android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
