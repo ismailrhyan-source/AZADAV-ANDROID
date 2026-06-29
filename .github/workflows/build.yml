@@ -23,11 +23,11 @@ jobs:
 
     - name: Accept Android SDK Licenses
       run: |
-        # Membuat folder lisensi dan memasukkan tanda persetujuan otomatis
-        mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
-        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        echo "d56f5187473751e9e7b235483257858c14f526c8" >> /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8713" >> /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        # Menggunakan $HOME agar memiliki izin akses penuh
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo "d56f5187473751e9e7b235483257858c14f526c8" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8713" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
     - name: Build with Buildozer
       run: |
