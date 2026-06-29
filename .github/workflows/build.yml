@@ -23,22 +23,22 @@ jobs:
 
     - name: Setup Android SDK and Force Accept
       run: |
-        # 1. Download & Extract Cmdline-tools
+        # Download & Extract Cmdline-tools
         mkdir -p $HOME/android-sdk/cmdline-tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $HOME/android-sdk/cmdline-tools
         mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
         
-        # 2. Path ke sdkmanager
+        # Path ke sdkmanager
         export PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin
         
-        # 3. Force Accept Licenses (Ini mematikan error "Accept? (y/N)")
+        # Force Accept Licenses
         yes "y" | sdkmanager --sdk_root=$HOME/android-sdk --licenses
         
-        # 4. Install komponen yang kurang (Build-tools 37 & Platform 37)
-        sdkmanager --sdk_root=$HOME/android-sdk "build-tools;37.0.0" "platforms;android-37" "platform-tools"
+        # Install komponen (Gunakan API 34 yang pasti ada)
+        sdkmanager --sdk_root=$HOME/android-sdk "build-tools;34.0.0" "platforms;android-34" "platform-tools"
         
-        # 5. Set environment variable agar Buildozer melihat SDK ini
+        # Set environment variable agar Buildozer melihat SDK ini
         echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
 
     - name: Build with Buildozer
