@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    # KUNCI UTAMA: Menggunakan Ubuntu 22.04 agar kompatibel dengan library lama
+    # Menggunakan Ubuntu 22.04 agar kompatibel dengan library lama (libffi)
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential ccache git libncurses5-dev libncursesw5-dev libffi-dev libssl-dev libtool pkg-config zlib1g-dev zip unzip openjdk-17-jdk python3-pip autoconf automake
+        sudo apt-get install -y build-essential ccache git libncurses5-dev libncursesw5-dev libffi-dev libssl-dev libtool pkg-config zlib1g-dev zip unzip openjdk-17-jdk python3-pip autoconf automake autoconf-archive
         pip install --upgrade buildozer cython
 
     - name: Setup Android SDK
@@ -29,6 +29,7 @@ jobs:
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
+        
         export PATH=$PATH:$SDK_ROOT/cmdline-tools/latest/bin
         yes "y" | sdkmanager --sdk_root=$SDK_ROOT --licenses
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
@@ -41,10 +42,10 @@ jobs:
 
     - name: Build with Buildozer
       run: |
-        # Hapus sisa-sisa build lama agar benar-benar bersih
+        # Hapus folder .buildozer agar build benar-benar bersih
         rm -rf .buildozer
         
-        # Bersihkan Environment
+        # Bersihkan variabel environment yang berpotensi konflik
         unset ANDROID_NDK_HOME
         unset ANDROID_NDK
         unset ANDROID_NDK_ROOT
