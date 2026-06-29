@@ -23,12 +23,11 @@ jobs:
 
     - name: Setup Android SDK (Fix Path)
       run: |
-        # 1. Definisi path lokasi SDK
+        # 1. Lokasi SDK yang tetap
         export SDK_ROOT=/home/runner/android-sdk
-        mkdir -p $SDK_ROOT
-        
-        # 2. Unduh cmdline-tools
         mkdir -p $SDK_ROOT/cmdline-tools
+        
+        # 2. Download SDK
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
@@ -40,8 +39,7 @@ jobs:
         # 4. Install komponen API 34
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
-        # 5. TRIK SYMLINK: Membuat struktur "tools/bin" palsu agar Buildozer tidak error
-        # Buildozer versi lama mencari sdkmanager di sini, jadi kita arahkan ke lokasi asli
+        # 5. TRIK SYMLINK: Agar Buildozer versi lama bisa menemukan SDK
         mkdir -p $SDK_ROOT/tools/bin
         ln -s $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $SDK_ROOT/tools/bin/sdkmanager
         
