@@ -21,23 +21,25 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
         pip install --upgrade buildozer cython
 
-    - name: Setup Android SDK and Fix Path
+    - name: Setup Android SDK and Force Accept
       run: |
-        # 1. Buat direktori lisensi
-        mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
-        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        echo "d56f5187473751e9e7b235483257858c14f526c8" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8713" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        
-        # 2. Unduh cmdline-tools
-        mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+        # 1. Download & Extract Cmdline-tools
+        mkdir -p $HOME/android-sdk/cmdline-tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -q commandlinetools-linux-9477386_latest.zip
-        mv cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+        unzip -q commandlinetools-linux-9477386_latest.zip -d $HOME/android-sdk/cmdline-tools
+        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
         
-        # 3. MENGAKALI PATH: Membuat symlink agar buildozer menemukan sdkmanager di tempat yang dia mau
-        mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
-        ln -s $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
+        # 2. Path ke sdkmanager
+        export PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin
+        
+        # 3. Force Accept Licenses (Ini mematikan error "Accept? (y/N)")
+        yes "y" | sdkmanager --sdk_root=$HOME/android-sdk --licenses
+        
+        # 4. Install komponen yang kurang (Build-tools 37 & Platform 37)
+        sdkmanager --sdk_root=$HOME/android-sdk "build-tools;37.0.0" "platforms;android-37" "platform-tools"
+        
+        # 5. Set environment variable agar Buildozer melihat SDK ini
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
 
     - name: Build with Buildozer
       run: |
