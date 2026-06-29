@@ -1,53 +1,25 @@
-name: Build Android APK
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install System Dependencies
+- name: Setup Android SDK (Forced Structure)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
-        pip install --upgrade buildozer cython
-
-    - name: Setup Android SDK (Robust Config)
-      run: |
-        export SDK_ROOT=$HOME/android-sdk
+        export SDK_ROOT=/home/runner/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
         
-        # Unduh SDK Tools
+        # 1. Unduh dan siapkan SDK
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
         
-        # Konfigurasi Path & Lisensi
+        # 2. Accept Licenses
         export PATH=$PATH:$SDK_ROOT/cmdline-tools/latest/bin
         yes "y" | sdkmanager --sdk_root=$SDK_ROOT --licenses
         
-        # Install API 34 (ini mencakup banyak library)
+        # 3. Install komponen
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
-        # Set Environment Variables agar Buildozer mengenali SDK ini
+        # 4. TRIK SYMLINK: Membuat "Jembatan" agar Buildozer berhenti error
+        # Buildozer mencari di /home/runner/android-sdk/tools/bin/sdkmanager
+        mkdir -p $SDK_ROOT/tools/bin
+        ln -s $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $SDK_ROOT/tools/bin/sdkmanager
+        
+        # 5. Export Env
         echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> $GITHUB_ENV
         echo "ANDROID_HOME=$SDK_ROOT" >> $GITHUB_ENV
-
-    - name: Build with Buildozer
-      run: |
-        buildozer -v android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
