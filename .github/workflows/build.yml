@@ -23,11 +23,18 @@ jobs:
 
     - name: Accept Android SDK Licenses
       run: |
-        # Menggunakan $HOME agar memiliki izin akses penuh
         mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
         echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         echo "d56f5187473751e9e7b235483257858c14f526c8" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         echo "84831b9409646a918e30573bab4c9c91346d8713" >> $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+
+    - name: Install Android SDK Tools
+      run: |
+        # Mengunduh dan menginstal cmdline-tools secara manual untuk memperbaiki error sdkmanager
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q commandlinetools-linux-9477386_latest.zip
+        mv cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
 
     - name: Build with Buildozer
       run: |
