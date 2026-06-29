@@ -21,20 +21,24 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
         pip install --upgrade buildozer cython
 
-    - name: Setup Android SDK (API 34)
+    - name: Setup Android SDK (Robust Config)
       run: |
         export SDK_ROOT=$HOME/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
+        
+        # Unduh SDK Tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
         
+        # Konfigurasi Path & Lisensi
         export PATH=$PATH:$SDK_ROOT/cmdline-tools/latest/bin
         yes "y" | sdkmanager --sdk_root=$SDK_ROOT --licenses
         
-        # Menginstal API 34 agar sinkron dengan buildozer.spec
+        # Install API 34 (ini mencakup banyak library)
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
+        # Set Environment Variables agar Buildozer mengenali SDK ini
         echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> $GITHUB_ENV
         echo "ANDROID_HOME=$SDK_ROOT" >> $GITHUB_ENV
 
