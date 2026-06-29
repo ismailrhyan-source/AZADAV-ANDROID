@@ -41,18 +41,17 @@ jobs:
 
     - name: Build with Buildozer
       run: |
-        # Hapus total folder buildozer agar tidak ada sisa error sebelumnya
-        rm -rf .buildozer
+        # 1. Bersihkan sisa build lama yang mungkin sudah korup
+        rm -rf .buildozer/android/platform
         
-        # Bersihkan Environment
+        # 2. BERIKAN "KAMUS" MACRO: Ini adalah kunci untuk error LT_SYS_SYMBOL_USCORE
+        # Kita memberitahu autoconf untuk melihat ke folder sistem tempat libtool.m4 berada
+        export ACLOCAL_PATH=/usr/share/aclocal
+        
+        # 3. Bersihkan Environment agar tidak ada konflik NDK
         unset ANDROID_NDK_HOME
         unset ANDROID_NDK
         unset ANDROID_NDK_ROOT
         
+        # 4. Jalankan buildozer
         buildozer -v android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
