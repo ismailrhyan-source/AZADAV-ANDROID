@@ -1,0 +1,46 @@
+<AzadAvRoot>:
+    orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: 0.98, 0.9, 0.95, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        size_hint_y: 0.3
+        padding: 10
+        Image:
+            source: 'kekasih.png'
+            allow_stretch: True
+            keep_ratio: True
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 15
+        spacing: 10
+        ScrollView:
+            id: chat_scroll
+            Label:
+                id: chat_label
+                text: root.chat_history
+                markup: True
+                color: 0.15, 0.15, 0.15, 1
+                font_size: '14sp'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                valign: 'top'
+
+        BoxLayout:
+            size_hint_y: None
+            height: '50dp'
+            spacing: 10
+            TextInput:
+                id: user_input
+                multiline: False
+                hint_text: "Pesan..."
+            Button:
+                text: "Kirim"
+                size_hint_x: 0.3
+                on_press: root.send_message()
