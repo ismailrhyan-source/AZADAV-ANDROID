@@ -18,44 +18,41 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+        # Menambahkan autoconf-archive untuk memperbaiki error libffi
+        sudo apt-get install -y build-essential ccache git libncurses5-dev libncursesw5-dev libffi-dev libssl-dev libtool pkg-config zlib1g-dev zip unzip openjdk-17-jdk python3-pip autoconf-archive automake
         pip install --upgrade buildozer cython
 
-    - name: Setup Android SDK (Fix Path)
+    - name: Setup Android SDK
       run: |
-        # 1. Lokasi SDK yang tetap
         export SDK_ROOT=/home/runner/android-sdk
         mkdir -p $SDK_ROOT/cmdline-tools
-        
-        # 2. Download SDK
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip -d $SDK_ROOT/cmdline-tools
         mv $SDK_ROOT/cmdline-tools/cmdline-tools $SDK_ROOT/cmdline-tools/latest
-        
-        # 3. Accept Licenses (otomatis)
         export PATH=$PATH:$SDK_ROOT/cmdline-tools/latest/bin
         yes "y" | sdkmanager --sdk_root=$SDK_ROOT --licenses
-        
-        # 4. Install komponen API 34
         sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
-        # 5. TRIK SYMLINK: Agar Buildozer versi lama bisa menemukan SDK
         mkdir -p $SDK_ROOT/tools/bin
         ln -s $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager $SDK_ROOT/tools/bin/sdkmanager
         
-        # 6. Set Environment Variables
         echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> $GITHUB_ENV
         echo "ANDROID_HOME=$SDK_ROOT" >> $GITHUB_ENV
 
     - name: Build with Buildozer
       run: |
-        # Bersihkan lingkungan dari variabel bawaan GitHub yang konflik
+        # Hapus total folder buildozer agar tidak ada sisa error sebelumnya
+        rm -rf .buildozer
+        
+        # Bersihkan Environment
         unset ANDROID_NDK_HOME
         unset ANDROID_NDK
         unset ANDROID_NDK_ROOT
         
-        # Pastikan NDK yang dipakai adalah yang diunduh buildozer, bukan bawaan GitHub
-        export ANDROID_NDK_HOME=/home/runner/.buildozer/android/platform/android-ndk-r25b
-        
-        # Jalankan buildozer
         buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: bin/*.apk
